@@ -51,26 +51,32 @@ function mazeMouseMove(e) {
 }
 
 function resetMaze() {
-    if (!checkParameters())
+    if(!tryGetSizes(size = {}))
         return;
-    let nRows = parseInt($("rowInput").value);
-    let nCols = parseInt($("colInput").value);
-    for (let r = 0; r < nRows; r++) {
-        for (let c = 0; c < nCols; c++) {
-            let isEdge = r == 0 || r == nRows - 1 || c == 0 || c == nCols - 1;
+    for (let r = 0; r < size.rows; r++) {
+        for (let c = 0; c < size.cols; c++) {
+            let isEdge = r == 0 || r == size.rows - 1 || c == 0 || c == size.cols - 1;
             grid[r][c].textContent = isEdge ? WALL_CHAR : OPEN_CHAR;
         }
     }
 }
 
-function checkParameters() {
+function tryGetSizes(object) {
     let nRows = parseInt($("rowInput").value);
     let nCols = parseInt($("colInput").value);
     let goodR = !isNaN(nRows) && nRowRange[0] <= nRows && nRows <= nRowRange[1];
     let goodC = !isNaN(nCols) && nColRange[0] <= nCols && nCols <= nColRange[1];
     $("badRowInput").hidden = goodR;
     $("badColInput").hidden = goodC;
+    if (goodR && goodC) {
+        object.rows = nRows;
+        object.cols = nCols;
+    }
     return goodR && goodC;
+}
+
+function checkParameters() {
+    return tryGetSizes({});
 }
 
 function initGrid() {
