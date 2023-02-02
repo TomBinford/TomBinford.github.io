@@ -1,0 +1,24 @@
+[hidden] {
+    display: none !important
+}
+
+tile {
+    display: inline-block;
+    font-size: xx-large
+}
+
+.input-container label,
+.input-container input {
+    font-size: larger;
+}
+
+.bad-input {
+    color: red;
+    font-size: medium;
+}
+
+.maze-container {
+    font-family: monospace;
+    font-size: 0.5rem;
+    padding-top: 5%;
+}
