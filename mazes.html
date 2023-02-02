@@ -11,30 +11,21 @@
     <div class="input-container">
         <h3 style="line-height: 0;">Parameters</h3>
         <label for="rowInput" style="display:inline-block; width: 70px">nRows:</label>
-        <input id="rowInput" type="number" value=10 onclick="this.select()"
-            oninput="checkParameters()" onchange="makeGrid()"></input>
+        <input id="rowInput" type="number" value=10 onclick="this.select()" oninput="checkParameters()"
+            onchange="makeGrid()"></input>
         <div id="badRowInput" class="bad-input" hidden></div>
         <div></div>
         <label for="colInput" style="display:inline-block; width: 70px">nCols:</label>
-        <input id="colInput" type="number" value=10 onclick="this.select()"
-            oninput="checkParameters()" onchange="makeGrid()"></input>
+        <input id="colInput" type="number" value=10 onclick="this.select()" oninput="checkParameters()"
+            onchange="makeGrid()"></input>
         <div id="badColInput" class="bad-input" hidden></div>
     </div>
-    <div id="mazeContainer" class="maze-container" style="width: fit-content">
-        <tile>.</tile>
-        <tile>.</tile>
-        <tile>X</tile>
-        <tile hidden>X</tile>
-        <tile hidden>X</tile>
-        <tile hidden>X</tile>
-        <div></div>
-        <tile>.</tile>
-        <tile>.</tile>
-        <tile>.</tile>
-        <div></div>
-        <tile>X</tile>
-        <tile>X</tile>
-        <tile>X</tile>
+    <div></div>
+    <div style="margin-top:2.5%;">Click and drag to change walls to pathways.</div>
+    <button style="margin: 1%" onclick="resetMaze()"><u>R</u>eset Maze</button>
+    <button style="margin: 1%">Randomize</button>
+    <div id="mazeContainer" class="maze-container" onmousedown="mazeMouseDown(event)" onmouseup="mazeMouseUp(event)"
+        onmousemove="mazeMouseMove(event)">
     </div>
 </body>
 

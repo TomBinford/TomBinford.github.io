@@ -1,10 +1,12 @@
 [hidden] {
-    display: none !important
+    display: none !important;
 }
 
 tile {
     display: inline-block;
-    font-size: xx-large
+    font-size: xx-large;
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
 }
 
 .input-container label,
@@ -19,6 +21,11 @@ tile {
 
 .maze-container {
     font-family: monospace;
-    font-size: 0.5rem;
-    padding-top: 5%;
+    font-size: 0;
+    width: fit-content;
+    user-select: none;
+    /*Safari*/
+    -webkit-user-select: none;
+    /*Firefox*/
+    -moz-user-select: none;
 }
