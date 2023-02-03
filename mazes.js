@@ -51,7 +51,7 @@ function mazeMouseMove(e) {
 }
 
 function resetMaze() {
-    if(!tryGetSizes(size = {}))
+    if(!tryGetSize(size = {}))
         return;
     for (let r = 0; r < size.rows; r++) {
         for (let c = 0; c < size.cols; c++) {
@@ -61,35 +61,21 @@ function resetMaze() {
     }
 }
 
-function tryGetSizes(object) {
-    let nRows = parseInt($("rowInput").value);
-    let nCols = parseInt($("colInput").value);
-    let goodR = !isNaN(nRows) && nRowRange[0] <= nRows && nRows <= nRowRange[1];
-    let goodC = !isNaN(nCols) && nColRange[0] <= nCols && nCols <= nColRange[1];
-    $("badRowInput").hidden = goodR;
-    $("badColInput").hidden = goodC;
-    if (goodR && goodC) {
-        object.rows = nRows;
-        object.cols = nCols;
-    }
-    return goodR && goodC;
-}
-
 function checkParameters() {
-    return tryGetSizes({});
+    return tryGetSize({});
 }
 
 function initGrid() {
-    let nRows = parseInt($("rowInput").value);
-    let nCols = parseInt($("colInput").value);
+    if(!tryGetSize(size = {}))
+        return;
     let container = $("mazeContainer");
     for (let r = 0; r < nRowRange[1]; r++) {
         tileRow = [];
         for (let c = 0; c < nColRange[1]; c++) {
             let tile = document.createElement("tile");
-            let isEdge = r == 0 || r == nRows - 1 || c == 0 || c == nCols - 1;
+            let isEdge = r == 0 || r == size.rows - 1 || c == 0 || c == size.cols - 1;
             tile.textContent = isEdge ? WALL_CHAR : OPEN_CHAR;
-            tile.hidden = r >= nRows || c >= nCols;
+            tile.hidden = r >= size.rows || c >= size.cols;
             tileRow.push(tile);
             container.appendChild(tile);
         }
@@ -102,4 +88,18 @@ function makeGrid() {
     if (!checkParameters())
         return;
     
+}
+
+function tryGetSize(size) {
+    let nRows = parseInt($("rowInput").value);
+    let nCols = parseInt($("colInput").value);
+    let goodR = !isNaN(nRows) && nRowRange[0] <= nRows && nRows <= nRowRange[1];
+    let goodC = !isNaN(nCols) && nColRange[0] <= nCols && nCols <= nColRange[1];
+    $("badRowInput").hidden = goodR;
+    $("badColInput").hidden = goodC;
+    if (goodR && goodC) {
+        size.rows = nRows;
+        size.cols = nCols;
+    }
+    return goodR && goodC;
 }
