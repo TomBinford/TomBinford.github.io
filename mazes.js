@@ -2,6 +2,8 @@ const $ = id => document.getElementById(id);
 
 const nRowRange = [3, 20];
 const nColRange = nRowRange;
+const initialNRows = 10;
+const initialNCols = 10;
 
 const WALL_CHAR = 'X';
 const OPEN_CHAR = '.';
@@ -9,20 +11,24 @@ const NO_CHAR = '\0';
 let draggingChar = NO_CHAR;
 
 grid = [];
+let visibleRows;
+let visibleCols;
 
 window.onload = function () {
     let rowInput = $("rowInput");
-    rowInput.select();
-    [rowInput.min, rowInput.max] = nRowRange;
     let colInput = $("colInput");
+    visibleRows = rowInput.value = initialNRows;
+    visibleCols = colInput.value = initialNCols;
+    [rowInput.min, rowInput.max] = nRowRange;
     [colInput.min, colInput.max] = nColRange;
+
     $("badRowInput").textContent =
         `nRows must be a number between ${nRowRange[0]} and ${nRowRange[1]}`;
     $("badColInput").textContent =
         `nCols must be a number between ${nColRange[0]} and ${nColRange[1]}`;
 
     document.addEventListener('keydown', (e) => {
-        if(e.code == 'KeyR') resetMaze();
+        if (e.code == 'Escape') clearMaze();
     });
 
     checkParameters();
@@ -50,8 +56,8 @@ function mazeMouseMove(e) {
     }
 }
 
-function resetMaze() {
-    if(!tryGetSize(size = {}))
+function clearMaze() {
+    if (!tryGetSize(size = {}))
         return;
     for (let r = 0; r < size.rows; r++) {
         for (let c = 0; c < size.cols; c++) {
@@ -61,12 +67,8 @@ function resetMaze() {
     }
 }
 
-function checkParameters() {
-    return tryGetSize({});
-}
-
 function initGrid() {
-    if(!tryGetSize(size = {}))
+    if (!tryGetSize(size = {}))
         return;
     let container = $("mazeContainer");
     for (let r = 0; r < nRowRange[1]; r++) {
@@ -85,9 +87,29 @@ function initGrid() {
 }
 
 function makeGrid() {
-    if (!checkParameters())
+    if (!tryGetSize(size = {}))
         return;
-    
+    // clear the old outer walls
+    for (let r = 0; r < nRowRange[1]; r++) {
+        grid[r][visibleCols - 1].textContent = OPEN_CHAR;
+    }
+    for(let c = 0; c < nColRange[1]; c++) {
+        grid[visibleRows - 1][c].textContent = OPEN_CHAR;
+    }
+    // make the new size visible
+    for (let r = 0; r < nRowRange[1]; r++) {
+        for (let c = 0; c < nColRange[1]; c++) {
+            let inside = r < size.rows && c < size.cols;
+            grid[r][c].hidden = !inside;
+            // add outer walls
+            let isEdge = r == 0 || c == 0 || r == size.rows - 1 || c == size.cols - 1;
+            if(isEdge) {
+                grid[r][c].textContent = WALL_CHAR;
+            }
+        }
+    }
+    visibleRows = size.rows;
+    visibleCols = size.cols;
 }
 
 function tryGetSize(size) {
@@ -102,4 +124,8 @@ function tryGetSize(size) {
         size.cols = nCols;
     }
     return goodR && goodC;
+}
+
+function checkParameters() {
+    return tryGetSize({});
 }
