@@ -300,6 +300,8 @@ function getSourceText() {
 // append this to your source file below pathExists
 #include <cassert>
 #include <iostream>
+#include <algorithm>
+#include <iterator>
 using namespace std;
 
 int main() {
@@ -310,7 +312,8 @@ int main() {
 ${stringifyRows() /* do not indent this */}
     };
     // the first call to pathExists might modify maze
-    string copy[${nRows}] = maze;
+    string copy[${nRows}];
+    std::copy(begin(maze), end(maze), begin(copy));
 
     assert(${solvable ? '' : '! '}pathExists(maze, ${nRows},${nCols}, ${sr},${sc}, ${er},${ec}));
     assert(${solvable ? '' : '! '}pathExists(copy, ${nRows},${nCols}, ${er},${ec}, ${sr},${sc}));
