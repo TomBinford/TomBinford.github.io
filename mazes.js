@@ -151,10 +151,10 @@ function makeGrid() {
     if (!tryGetSize(size = {}))
         return;
     // clear the old outer walls
-    for (let r = 0; r < visibleRows; r++) {
+    for (let r = 0; r < nRowRange[1]; r++) {
         grid[r][visibleCols - 1].textContent = OPEN_CHAR;
     }
-    for (let c = 0; c < visibleCols; c++) {
+    for (let c = 0; c < nColRange[1]; c++) {
         grid[visibleRows - 1][c].textContent = OPEN_CHAR;
     }
     // make the new size visible
