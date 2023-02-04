@@ -331,11 +331,11 @@ function isMazeSolvable() {
             return false;
         else if (row == er && col == ec)
             return true;
-        else if(grid[row][col].textContent == WALL_CHAR || seen.has(`${row},${col}`))
+        else if (grid[row][col].textContent == WALL_CHAR || seen.has(`${row},${col}`))
             return false;
         seen.add(`${row},${col}`);
         for (let dir = 0; dir < 4; dir++) {
-            if(dfs(row + dr[dir], col + dc[dir]))
+            if (dfs(row + dr[dir], col + dc[dir]))
                 return true;
         }
         return false;
@@ -371,4 +371,17 @@ function copyCpp() {
         timeoutRunning = false;
         clickCount = 0;
     }, 500);
+}
+
+function randomizeMaze() {
+    for (let r = 1; r < visibleRows - 1; r++) {
+        for (let c = 1; c < visibleCols - 1; c++) {
+            let shouldFill = Math.random() < 0.5;
+            let isStart = startPos && startPos.row == r && startPos.col == c;
+            let isEnd = endPos && endPos.row == r && endPos.col == c;
+            let doFill = shouldFill && !isStart && !isEnd;
+            grid[r][c].textContent = doFill ? WALL_CHAR : OPEN_CHAR
+        }
+    }
+    updateCode();
 }
