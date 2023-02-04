@@ -291,7 +291,7 @@ function getSourceText() {
             for (let col = 0; col < nCols; col++) {
                 str += grid[row][col].textContent;
             }
-            return `        "${str}"`; // indent by 8 spaces
+            return `        "${str},"`; // indent by 8 spaces
         });
         return strings.join('\n');
     }
