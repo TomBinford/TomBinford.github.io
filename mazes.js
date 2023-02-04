@@ -37,14 +37,14 @@ window.onload = function () {
 
     document.addEventListener('keydown', (e) => {
         if (e.code == 'Escape') {
-            if(document.activeElement == $("rowInput") || document.activeElement == $("colInput")) {
+            if (document.activeElement == $("rowInput") || document.activeElement == $("colInput")) {
                 return;
             }
-            if(selectingStart) {
+            if (selectingStart) {
                 selectingStart = false;
                 $("selectMessage").style.visibility = "hidden";
             }
-            else if(selectingEnd) {
+            else if (selectingEnd) {
                 selectingEnd = false;
                 $("selectMessage").style.visibility = "hidden";
             }
@@ -52,10 +52,10 @@ window.onload = function () {
                 clearMaze();
             }
         }
-        else if(e.code == 'KeyS') {
+        else if (e.code == 'KeyS') {
             selectStartClick();
         }
-        else if(e.code == 'KeyE') {
+        else if (e.code == 'KeyE') {
             selectEndClick();
         }
     });
@@ -66,16 +66,16 @@ window.onload = function () {
 
 function mazeMouseDown(e) {
     if (e.target.nodeName != "TILE") return;
-    let [row, col] = e.target.getAttribute("data-rowcol").split(',')
+    let [row, col] = e.target.getAttribute("data-rowcol").split(',').map(x => parseInt(x));
     let isWall = e.target.textContent == WALL_CHAR;
     if (selectingStart) {
-        if(!isWall) {
+        if (!isWall) {
             setStartPosition(row, col);
         }
         return;
     }
     else if (selectingEnd) {
-        if(!isWall) {
+        if (!isWall) {
             setEndPosition(row, col);
         }
         return;
@@ -85,25 +85,30 @@ function mazeMouseDown(e) {
         let clickEnd = endPos && endPos.row == row && endPos.col == col;
         let isEdge = row == 0 || row == visibleRows - 1 || col == 0 || col == visibleCols - 1;
         // don't do anything if you click on an important tile
-        if(clickStart || clickEnd) {
+        if (clickStart || clickEnd) {
             return;
         }
         draggingChar = isWall ? OPEN_CHAR : WALL_CHAR;
         // don't overwrite the border
-        if(!isEdge) {
+        if (!isEdge) {
             e.target.textContent = draggingChar;
         }
     }
 }
 
 function mazeMouseUp(e) {
-    draggingChar = NO_CHAR;
+    if (draggingChar != NO_CHAR) {
+        draggingChar = NO_CHAR;
+        updateCode();
+    }
 }
 
 function mazeMouseMove(e) {
     if (e.target.nodeName != "TILE") return;
+    else if (draggingChar == NO_CHAR) return;
     if ((e.buttons & 1) == 0) { // left click is released
         draggingChar = NO_CHAR;
+        updateCode();
         return;
     }
     let [row, col] = e.target.getAttribute("data-rowcol").split(',');
@@ -125,6 +130,7 @@ function clearMaze() {
             grid[r][c].textContent = isEdge ? WALL_CHAR : OPEN_CHAR;
         }
     }
+    updateCode();
 }
 
 function initGrid() {
@@ -148,8 +154,10 @@ function initGrid() {
 }
 
 function makeGrid() {
-    if (!tryGetSize(size = {}))
+    if (!tryGetSize(size = {})) {
+        updateCode();
         return;
+    }
     // clear the old outer walls
     for (let r = 0; r < nRowRange[1]; r++) {
         grid[r][visibleCols - 1].textContent = OPEN_CHAR;
@@ -171,18 +179,19 @@ function makeGrid() {
     }
     visibleRows = size.rows;
     visibleCols = size.cols;
-    if(startPos) {
-        if(startPos.row >= size.rows - 1 || startPos.col >= size.cols - 1) {
+    if (startPos) {
+        if (startPos.row >= size.rows - 1 || startPos.col >= size.cols - 1) {
             grid[startPos.row][startPos.col].style.backgroundColor = "";
             startPos = null;
         }
     }
-    if(endPos) {
-        if(endPos.row >= size.rows - 1 || endPos.col >= size.cols - 1) {
+    if (endPos) {
+        if (endPos.row >= size.rows - 1 || endPos.col >= size.cols - 1) {
             grid[endPos.row][endPos.col].style.backgroundColor = "";
             endPos = null;
         }
     }
+    updateCode();
 }
 
 function selectStartClick() {
@@ -202,37 +211,39 @@ function selectEndClick() {
 function setStartPosition(row, col) {
     selectingStart = false;
     $("selectMessage").style.visibility = "hidden";
-    if(startPos) {
+    if (startPos) {
         let oldTile = grid[startPos.row][startPos.col];
         let oldColor = oldTile.style.backgroundColor;
         oldTile.style.backgroundColor = oldColor == COLOR_YELLOW ? COLOR_RED : "";
     }
     startPos = { row: row, col: col };
     let tile = grid[row][col];
-    if(endPos && row == endPos.row && col == endPos.col) {
+    if (endPos && row == endPos.row && col == endPos.col) {
         tile.style.backgroundColor = COLOR_YELLOW;
     }
     else {
         tile.style.backgroundColor = COLOR_GREEN;
     }
+    updateCode();
 }
 
 function setEndPosition(row, col) {
     selectingEnd = false;
     $("selectMessage").style.visibility = "hidden";
-    if(endPos) {
+    if (endPos) {
         let oldTile = grid[endPos.row][endPos.col];
         let oldColor = oldTile.style.backgroundColor;
         oldTile.style.backgroundColor = oldColor == COLOR_YELLOW ? COLOR_GREEN : "";
     }
     endPos = { row: row, col: col };
     let tile = grid[row][col];
-    if(startPos && row == startPos.row && col == startPos.col) {
+    if (startPos && row == startPos.row && col == startPos.col) {
         tile.style.backgroundColor = COLOR_YELLOW;
     }
     else {
         tile.style.backgroundColor = COLOR_RED;
     }
+    updateCode();
 }
 
 function tryGetSize(size) {
@@ -251,4 +262,113 @@ function tryGetSize(size) {
 
 function checkParameters() {
     return tryGetSize({});
+}
+
+function updateCode() {
+    if (!startPos || !endPos) {
+        $("selectPointsMessage").hidden = false;
+        $("outputContainer").hidden = true;
+    }
+    else {
+        $("solvableMessage").textContent = isMazeSolvable() ? "yes" : "no";
+        $("cppOutput").textContent = getSourceText();
+        $("selectPointsMessage").hidden = true;
+        $("outputContainer").hidden = false;
+    }
+}
+
+function getSourceText() {
+    const nRows = visibleRows;
+    const nCols = visibleCols;
+    const { row: sr, col: sc } = startPos;
+    const { row: er, col: ec } = endPos;
+
+    const solvable = isMazeSolvable();
+
+    function stringifyRows() {
+        let strings = Array(nRows).fill(0).map((_, row) => {
+            let str = "";
+            for (let col = 0; col < nCols; col++) {
+                str += grid[row][col].textContent;
+            }
+            return `        "${str}"`; // indent by 8 spaces
+        });
+        return strings.join('\n');
+    }
+
+    return `
+// append this to your source file below pathExists
+#include <cassert>
+#include <iostream>
+using namespace std;
+
+int main() {
+    // Generated at TomBinford.github.io/mazes
+    // credit is required per http://web.cs.ucla.edu/classes/winter23/cs32/integrity.html
+
+    string maze[${nRows}] = {
+${stringifyRows() /* do not indent this */}
+    };
+    // the first call to pathExists might modify maze
+    string copy[${nRows}] = maze;
+
+    assert(${solvable ? '' : '! '}pathExists(maze, ${nRows},${nCols}, ${sr},${sc}, ${er},${ec}));
+    assert(${solvable ? '' : '! '}pathExists(copy, ${nRows},${nCols}, ${er},${ec}, ${sr},${sc}));
+}`;
+}
+
+function isMazeSolvable() {
+    // If you viewed page source to copy this,
+    // you're not as clever as you think you are.
+    const { row: sr, col: sc } = startPos;
+    const { row: er, col: ec } = endPos;
+
+    const seen = new Set();
+    const dr = [1, -1, 0, 0];
+    const dc = [0, 0, 1, -1];
+    function dfs(row, col) {
+        if (row < 0 || row >= visibleRows || col < 0 || col >= visibleCols)
+            return false;
+        else if (row == er && col == ec)
+            return true;
+        else if(grid[row][col].textContent == WALL_CHAR || seen.has(`${row},${col}`))
+            return false;
+        seen.add(`${row},${col}`);
+        for (let dir = 0; dir < 4; dir++) {
+            if(dfs(row + dr[dir], col + dc[dir]))
+                return true;
+        }
+        return false;
+    }
+    return dfs(sr, sc);
+}
+
+let timeoutId;
+let timeoutRunning = false;
+let clickCount = 0;
+
+function copyCpp() {
+    if (clickCount >= 10) {
+        return;
+    }
+    if (timeoutRunning) {
+        clearTimeout(timeoutId);
+        timeoutRunning = false;
+        clickCount++;
+        if (clickCount >= 10) {
+            $("copiedLabel").textContent = "You are why we can't have nice things.";
+            $("copiedLabel").style.color = "red";
+            $("copiedLabel").style.visibility = "visible";
+            return;
+        }
+    }
+    let text = $("cppOutput").textContent;
+    navigator.clipboard.writeText(text);
+    $("copiedLabel").style.visibility = "visible";
+    timeoutRunning = true;
+    timeoutId = setTimeout(() => {
+        $("copiedLabel").style.visibility = "hidden";
+        timeoutRunning = false;
+        clickCount = 0;
+    }, 500);
 }

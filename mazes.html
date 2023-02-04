@@ -8,7 +8,7 @@
 
 <body style="padding: 5%;">
     <script src="mazes.js"></script>
-    <div style="width: 60%; float:left;">
+    <div style="width: 50%; float:left;">
         <div class="input-container" style="width: fit-content">
             <h3 style="line-height: 0;">Parameters</h3>
             <label for="rowInput" style="display:inline-block; width: 75px">nRows:</label>
@@ -33,8 +33,19 @@
             onmousemove="mazeMouseMove(event)">
         </div>
     </div>
-    <div style="width:40%; float: right">
-        Hello from the right side!
+    <div style="width:50%; float: right">
+        <h3 style="line-height: 0;">Output</h3>
+        <div id="selectPointsMessage">Select start and end points to see your C++ program.</div>
+        <div id="outputContainer" hidden>
+            <label for="solvableMessage" style="display: inline-block">Solvable: </label>
+            <div id="solvableMessage" style="margin-bottom: 2%; display: inline-block">poop</div>
+            <div></div>
+            <button style="display: inline-block" onclick="copyCpp()">Copy to clipboard</button>
+            <div id="copiedLabel" style="color:green; display: inline-block; margin-left: 5%; visibility: hidden;">Copied!</div>
+            <div>
+                <pre id="cppOutput"></pre>
+            </div>
+        </div>
     </div>
 </body>
 
