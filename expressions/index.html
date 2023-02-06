@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Expressions</title>
+    <link rel="stylesheet" type="text/css" href="expressions.css">
+</head>
+
+<body style="padding: 5%;">
+    <script src="expressions.js"></script>
+    <div style="overflow: hidden; width: fit-content;">
+        <h3>Write this once at the beginning of main:</h3>
+        <div style="float: right; text-align: center;">
+            <button style="width: fit-content; padding: 0px 20px" onclick="copyPreamble()">Copy</button>
+            <div id="preambleCopiedMessage" style="color: green; margin-top: 5px;   " hidden>Copied</div>
+        </div>
+        <pre id="preamble" style="float: left; margin-top: 0;">
+Set tset;
+tset.insert('t');
+Set fset;
+fset.insert('f');
+std::string pfstring;
+bool answer;
+// Generated at
+// TomBinford.github.io/expressions</pre>
+    </div>
+    <h3>Generate test cases:</h3>
+    <input id="testCountInput" type="number" value="10" step="5" min="5" max="100" onclick="this.select()">
+    <button style="margin-left: 30px; width: 100px" onclick="buildTestCases()">Go!</button>
+    <div>
+        <h3 style="display: inline-block">Output:</h3>
+        <button id="copyOutputButton" style="padding: 0px 20px; margin-left: 10px" onclick="copyOutput()" hidden>Copy</button>
+        <div id="outputCopiedMessage" style="display: inline-block; margin-left: 10px; color: green;" hidden>Copied</div>
+        <pre id="output" hidden>
+assert(evaluate("t|f", tset, fset, pfstring, answer) == 0 && answer);</pre>
+    </div>
+</body>
+
+</html>
