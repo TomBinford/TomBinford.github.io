@@ -19,7 +19,7 @@ Set tset;
 tset.insert('t');
 Set fset;
 fset.insert('f');
-std::string pfstring;
+std::string pf;
 bool answer;
 // Generated at
 // TomBinford.github.io/expressions</pre>
@@ -27,6 +27,7 @@ bool answer;
     <h3>Generate test cases:</h3>
     <input id="testCountInput" type="number" value="10" step="5" min="5" max="100" onclick="this.select()">
     <button style="margin-left: 30px; width: 100px" onclick="buildTestCases()">Go!</button>
+    <div id="invalidTestCountMessage" style="color: red; visibility: hidden;">Number of tests must be between 1 and 100</div>
     <div>
         <h3 style="display: inline-block">Output:</h3>
         <button id="copyOutputButton" style="padding: 0px 20px; margin-left: 10px" onclick="copyOutput()" hidden>Copy</button>
