@@ -37,7 +37,12 @@ function tryEvaluateInfix(infix) {
     infix = infix.replace(/[tf|&]/g, m => map[m]);
     try {
         let result = eval(infix);
-        return { ok: true, result: result };
+        if (result === true || result === false) {
+            return { ok: true, result: result };
+        }
+        else {
+            return { ok: false };
+        }
     }
     catch {
         return { ok: false };
@@ -61,7 +66,7 @@ function buildTestCases() {
 function assertFromInfix(infix) {
     let evaluated = tryEvaluateInfix(infix);
     let callEvaluate = `evaluate("${infix}", tset, fset, pf, answer)`;
-    if(evaluated.ok) {
+    if (evaluated.ok) {
         return `assert(${callEvaluate} == 0 && ${evaluated.result ? '' : '!'}answer);`;
     }
     else {
