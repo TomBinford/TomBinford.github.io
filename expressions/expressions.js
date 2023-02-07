@@ -59,7 +59,7 @@ function tryEvaluateInfix(infix) {
     let infixFT = infix.replace(/[tf|&]/g, m => mapFT[m]);
     try {
         // eval(infix) is tricky because of short circuiting -
-        // an expressiom like "f|f&t()" short circuits to false,
+        // an expression like "f|f&t()" short circuits to false,
         // and even switching true with false (what I originally tried)
         // doesn't entirely help with the above expression. JS is lazy and
         // doesn't look at the right side of an operator if it can short circuit.
@@ -77,6 +77,40 @@ function tryEvaluateInfix(infix) {
     }
     catch {
         return { ok: false };
+    }
+}
+
+function isValidInfix(infix) {
+    
+    infix = infix.replace(' ', '');
+    if (infix.includes("t(") || infix.includes("f(")) {
+        return false;
+    }
+    // https://stackoverflow.com/a/44475397
+    const mapTF = { 't': 'true ', 'f': 'false ', '|': '||', '&': '&&' };
+    const mapFT = { 't': 'false ', 'f': 'true ', '|': '||', '&': '&&' };
+    let infixTF = infix.replace(/[tf|&]/g, m => mapTF[m]);
+    let infixFT = infix.replace(/[tf|&]/g, m => mapFT[m]);
+    try {
+        // eval(infix) is tricky because of short circuiting -
+        // an expression like "f|f&t()" short circuits to false,
+        // and even switching true with false (what I originally tried)
+        // doesn't entirely help with the above expression. JS is lazy and
+        // doesn't look at the right side of an operator if it can short circuit.
+        // The best I can come up with is checking for 't' or 'f'
+        // immediately followed by '(' - this pattern fits every
+        // bad expression I've seen so far.
+        let result = eval(infixTF);
+        let _ = eval(infixFT);
+        if (result === true || result === false) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+    catch {
+        return false;
     }
 }
 
@@ -140,4 +174,40 @@ function randomInfixExpression() {
         expr += choices[Math.floor(Math.random() * choices.length)];
     }
     return expr;
+}
+
+function generateValidAssert() {
+    let ast = randomAST();
+    let infix = ast.toInfix();
+    let postfix = ast.toPostfix();
+    let evaluatesTrue = ast.evaluate();
+    return `assert(evaluate("${infix}", tset, fset, pf, answer) == 0 && pf == "${postfix}" && ${evaluatesTrue ? '' : '!'}answer);`;
+}
+
+function generateInvalidAssert() {
+    let e;
+    do {
+        e = randomInfixExpression();
+    } while (isValidInfix(e));
+    return `assert(evaluate("${e}", tset, fset, pf, answer) == 1);`;
+}
+
+function randomAST() {
+    function generateNode(depth) {
+        if (depth == 0) {
+            return Atom(Math.random() < 0.5 ? 't' : 'f');
+        }
+        const options = [Kind.Parens, Kind.Not, Kind.And, Kind.Or];
+        switch (options[Math.floor(Math.random() * options.length)]) {
+            case Kind.Parens:
+                return Parens(generateNode(depth - 1));
+            case Kind.Not:
+                return Not(generateNode(depth - 1));
+            case Kind.And:
+                return And(generateNode(depth - 1), generateNode(depth - 1));
+            case Kind.Or:
+                return Or(generateNode(depth - 1), generateNode(depth - 1));
+        }
+    }
+    return generateNode(4);
 }
