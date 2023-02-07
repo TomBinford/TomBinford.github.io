@@ -47,41 +47,53 @@ function copyOutput() {
     }, 250);
 }
 
-function tryEvaluateInfix(infix) {
-    // https://stackoverflow.com/a/44475397
-    const mapTF = { 't': 'true ', 'f': 'false ', '|': '||', '&': '&&' };
-    const mapFT = { 't': 'false ', 'f': 'true ', '|': '||', '&': '&&' };
-    infix = infix.replace(' ', '');
-    if (infix.includes("t(") || infix.includes("f(")) {
-        return { ok: false };
+function buildTestCases() {
+    let nTestCases = parseInt($("testCountInput").value);
+    if (isNaN(nTestCases) || nTestCases <= 0 || nTestCases > $("testCountInput").max) {
+        $("invalidTestCountMessage").style.visibility = "visible";
+        return;
     }
-    let infixTF = infix.replace(/[tf|&]/g, m => mapTF[m]);
-    let infixFT = infix.replace(/[tf|&]/g, m => mapFT[m]);
-    try {
-        // eval(infix) is tricky because of short circuiting -
-        // an expression like "f|f&t()" short circuits to false,
-        // and even switching true with false (what I originally tried)
-        // doesn't entirely help with the above expression. JS is lazy and
-        // doesn't look at the right side of an operator if it can short circuit.
-        // The best I can come up with is checking for 't' or 'f'
-        // immediately followed by '(' - this pattern fits every
-        // bad expression I've seen so far.
-        let result = eval(infixTF);
-        let _ = eval(infixFT);
-        if (result === true || result === false) {
-            return { ok: true, result: result };
-        }
-        else {
-            return { ok: false };
-        }
+    $("invalidTestCountMessage").style.visibility = "hidden";
+
+    let includeValid = $("includeValidCheckbox").checked;
+    let includeInvalid = $("includeInvalidCheckbox").checked;
+    if (!includeValid && !includeInvalid) {
+        $("output").textContent = "";
+        return;
     }
-    catch {
-        return { ok: false };
-    }
+    let numValid = includeValid ? (includeInvalid ? Math.ceil(nTestCases / 2) : nTestCases) : 0;
+    let numInvalid = includeInvalid ? (includeValid ? Math.floor(nTestCases / 2) : nTestCases) : 0;
+    let validAsserts = Array(numValid).fill(0).map(_ => {
+        return generateValidAssert();
+    });
+    let invalidAsserts = Array(numInvalid).fill(0).map(_ => {
+        return generateInvalidAssert();
+    });
+    $("output").textContent =
+        "// generated at TomBinford.github.io/expressions\n" +
+        "// credit is required per http://web.cs.ucla.edu/classes/winter23/cs32/integrity.html \n" +
+        validAsserts.concat(invalidAsserts).join('\n');
+    $("copyOutputButton").hidden = false;
+    $("output").hidden = false;
+}
+
+function generateValidAssert() {
+    let ast = randomAST();
+    let infix = ast.toInfix();
+    let postfix = ast.toPostfix();
+    let evaluatesTrue = ast.evaluate();
+    return `assert(evaluate("${infix}", tset, fset, pf, answer) == 0 && pf == "${postfix}" && ${evaluatesTrue ? '' : '!'}answer);`;
+}
+
+function generateInvalidAssert() {
+    let e;
+    do {
+        e = randomInfixExpression();
+    } while (isValidInfix(e));
+    return `assert(evaluate("${e}", tset, fset, pf, answer) == 1);`;
 }
 
 function isValidInfix(infix) {
-    
     infix = infix.replace(' ', '');
     if (infix.includes("t(") || infix.includes("f(")) {
         return false;
@@ -114,57 +126,6 @@ function isValidInfix(infix) {
     }
 }
 
-function buildTestCases() {
-    let nTestCases = parseInt($("testCountInput").value);
-    if (isNaN(nTestCases) || nTestCases <= 0 || nTestCases > $("testCountInput").max) {
-        $("invalidTestCountMessage").style.visibility = "visible";
-        return;
-    }
-    $("invalidTestCountMessage").style.visibility = "hidden";
-
-    let includeValid = $("includeValidCheckbox").checked;
-    let includeInvalid = $("includeInvalidCheckbox").checked;
-    if (!includeValid && !includeInvalid) {
-        $("output").textContent = "";
-        return;
-    }
-    $("output").textContent =
-        "// generated at TomBinford.github.io/expressions\n" +
-        "// credit is required per http://web.cs.ucla.edu/classes/winter23/cs32/integrity.html \n" +
-        Array(nTestCases).fill(0).map(_ => {
-            while (true) {
-                let ex = randomInfixExpression();
-                let ok = tryEvaluateInfix(ex).ok;
-                if (ok && !includeValid) continue;
-                else if (!ok && !includeInvalid) continue;
-                // forming a valid expression is much rarer than an invalid one.
-                // this else if serves to "retry" the generation with high probability if
-                // we generate an invalid expression but we can accept valid ones.
-                // by doing this, we get a higher proportion of valid expressions
-                // in the output which looks more natural.
-                else if (!ok && includeValid && Math.random() < 0.95) {
-                    continue;
-                }
-                else {
-                    return assertFromInfix(ex);
-                }
-            }
-        }).join('\n');
-    $("copyOutputButton").hidden = false;
-    $("output").hidden = false;
-}
-
-function assertFromInfix(infix) {
-    let evaluated = tryEvaluateInfix(infix);
-    let callEvaluate = `evaluate("${infix}", tset, fset, pf, answer)`;
-    if (evaluated.ok) {
-        return `assert(${callEvaluate} == 0 && ${evaluated.result ? '' : '!'}answer);`;
-    }
-    else {
-        return `assert(${callEvaluate} == 1);`;
-    }
-}
-
 function randomInfixExpression() {
     // make spaces and ! less common by doubling everything else
     const choices = "ttff&&||(())" + " !";
@@ -176,29 +137,18 @@ function randomInfixExpression() {
     return expr;
 }
 
-function generateValidAssert() {
-    let ast = randomAST();
-    let infix = ast.toInfix();
-    let postfix = ast.toPostfix();
-    let evaluatesTrue = ast.evaluate();
-    return `assert(evaluate("${infix}", tset, fset, pf, answer) == 0 && pf == "${postfix}" && ${evaluatesTrue ? '' : '!'}answer);`;
-}
-
-function generateInvalidAssert() {
-    let e;
-    do {
-        e = randomInfixExpression();
-    } while (isValidInfix(e));
-    return `assert(evaluate("${e}", tset, fset, pf, answer) == 1);`;
-}
-
 function randomAST() {
     function generateNode(depth) {
         if (depth == 0) {
             return Atom(Math.random() < 0.5 ? 't' : 'f');
         }
         const options = [Kind.Parens, Kind.Not, Kind.And, Kind.Or];
-        switch (options[Math.floor(Math.random() * options.length)]) {
+        let kind;
+        // prevent choosing Parens when depth == 1, because (t) or (f) isn't very useful
+        do {
+            kind = options[Math.floor(Math.random() * options.length)];
+        } while (depth == 1 && kind == Kind.Parens);
+        switch (kind) {
             case Kind.Parens:
                 return Parens(generateNode(depth - 1));
             case Kind.Not:
