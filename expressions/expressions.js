@@ -49,15 +49,25 @@ function copyOutput() {
 
 function tryEvaluateInfix(infix) {
     // https://stackoverflow.com/a/44475397
-    const map = {
-        't': 'true',
-        'f': 'false',
-        '|': '||',
-        '&': '&&'
-    };
-    infix = infix.replace(/[tf|&]/g, m => map[m]);
+    const mapTF = { 't': 'true ', 'f': 'false ', '|': '||', '&': '&&' };
+    const mapFT = { 't': 'false ', 'f': 'true ', '|': '||', '&': '&&' };
+    infix = infix.replace(' ', '');
+    if (infix.includes("t(") || infix.includes("f(")) {
+        return { ok: false };
+    }
+    let infixTF = infix.replace(/[tf|&]/g, m => mapTF[m]);
+    let infixFT = infix.replace(/[tf|&]/g, m => mapFT[m]);
     try {
-        let result = eval(infix);
+        // eval(infix) is tricky because of short circuiting -
+        // an expressiom like "f|f&t()" short circuits to false,
+        // and even switching true with false (what I originally tried)
+        // doesn't entirely help with the above expression. JS is lazy and
+        // doesn't look at the right side of an operator if it can short circuit.
+        // The best I can come up with is checking for 't' or 'f'
+        // immediately followed by '(' - this pattern fits every
+        // bad expression I've seen so far.
+        let result = eval(infixTF);
+        let _ = eval(infixFT);
         if (result === true || result === false) {
             return { ok: true, result: result };
         }
@@ -84,25 +94,31 @@ function buildTestCases() {
         $("output").textContent = "";
         return;
     }
-    $("output").textContent = Array(nTestCases).fill(0).map(_ => {
-        while (true) {
-            let ex = randomInfixExpression();
-            let ok = tryEvaluateInfix(ex).ok;
-            if (ok && !includeValid) continue;
-            else if (!ok && !includeInvalid) continue;
-            // forming a valid expression is much rarer than an invalid one.
-            // this else if serves to "retry" the generation with high probability if
-            // we generate an invalid expression but we can accept valid ones.
-            // by doing this, we get a higher proportion of valid expressions
-            // in the output which looks more natural.
-            else if (!ok && includeValid && Math.random() < 0.95) {
-                continue;
+    $("output").textContent =
+        "// generated at TomBinford.github.io/expressions\n" +
+        "// credit is required per http://web.cs.ucla.edu/classes/winter23/cs32/integrity.html \n" +
+        Array(nTestCases).fill(0).map(_ => {
+            while (true) {
+                let ex = randomInfixExpression();
+                let ok = tryEvaluateInfix(ex).ok;
+                if (ok && !includeValid) continue;
+                else if (!ok && !includeInvalid) continue;
+                // forming a valid expression is much rarer than an invalid one.
+                // this else if serves to "retry" the generation with high probability if
+                // we generate an invalid expression but we can accept valid ones.
+                // by doing this, we get a higher proportion of valid expressions
+                // in the output which looks more natural.
+                else if (!ok && includeValid && Math.random() < 0.95) {
+                    continue;
+                }
+                else if (ok && !ex.includes("(") && Math.random() < 0.9) {
+                    continue;
+                }
+                else {
+                    return assertFromInfix(ex);
+                }
             }
-            else {
-                return assertFromInfix(ex);
-            }
-        }
-    }).join('\n');
+        }).join('\n');
     $("copyOutputButton").hidden = false;
     $("output").hidden = false;
 }
@@ -119,10 +135,9 @@ function assertFromInfix(infix) {
 }
 
 function randomInfixExpression() {
-    // make spaces less common by doubling everything else
-    const choices = "tf!&|()" + "tf!&|()" + " ";
-    let x = Math.random();
-    let length = Math.floor(x * 6 + 3);
+    // make spaces and ! less common by doubling everything else
+    const choices = "ttff&&||(())" + " !";
+    let length = 9 + Math.floor(Math.random() * 3);
     let expr = "";
     for (let i = 0; i < length; i++) {
         expr += choices[Math.floor(Math.random() * choices.length)];
