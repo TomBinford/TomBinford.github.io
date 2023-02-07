@@ -111,9 +111,6 @@ function buildTestCases() {
                 else if (!ok && includeValid && Math.random() < 0.95) {
                     continue;
                 }
-                else if (ok && !ex.includes("(") && Math.random() < 0.9) {
-                    continue;
-                }
                 else {
                     return assertFromInfix(ex);
                 }
@@ -137,7 +134,7 @@ function assertFromInfix(infix) {
 function randomInfixExpression() {
     // make spaces and ! less common by doubling everything else
     const choices = "ttff&&||(())" + " !";
-    let length = 9 + Math.floor(Math.random() * 3);
+    let length = 4 + Math.floor(Math.random() * 3);
     let expr = "";
     for (let i = 0; i < length; i++) {
         expr += choices[Math.floor(Math.random() * choices.length)];
