@@ -1,7 +1,28 @@
 const $ = id => document.getElementById(id);
 
+function runStatistics(nTrials) {
+    let nValid = 0;
+    console.log(`Running ${nTrials} trials...`);
+    start = performance.now();
+    let i = 0;
+    let sumLengths = 0;
+    for (i = 0; i < nTrials; i++) {
+        let ex = randomInfixExpression();
+        let ok = tryEvaluateInfix(ex).ok;
+        sumLengths += ex.length;
+        if (ok) nValid++;
+    }
+    console.log(`Out of ${nTrials} expressions, ${nValid} were valid`);
+    console.log(`Average length of ${sumLengths / nTrials}`);
+    console.log(`testing took ${(performance.now() - start)} ms`);
+}
+
 window.onload = function () {
     $("testCountInput").value = 10;
+    $("includeValidCheckbox").checked = true;
+    $("includeInvalidCheckbox").checked = true;
+
+    // runStatistics(1000);
 };
 
 let copyPreambleTimeoutId;
@@ -56,8 +77,31 @@ function buildTestCases() {
         return;
     }
     $("invalidTestCountMessage").style.visibility = "hidden";
+
+    let includeValid = $("includeValidCheckbox").checked;
+    let includeInvalid = $("includeInvalidCheckbox").checked;
+    if (!includeValid && !includeInvalid) {
+        $("output").textContent = "";
+        return;
+    }
     $("output").textContent = Array(nTestCases).fill(0).map(_ => {
-        return assertFromInfix(randomInfixExpression());
+        while (true) {
+            let ex = randomInfixExpression();
+            let ok = tryEvaluateInfix(ex).ok;
+            if (ok && !includeValid) continue;
+            else if (!ok && !includeInvalid) continue;
+            // forming a valid expression is much rarer than an invalid one.
+            // this else if serves to "retry" the generation with high probability if
+            // we generate an invalid expression but we can accept valid ones.
+            // by doing this, we get a higher proportion of valid expressions
+            // in the output which looks more natural.
+            else if (!ok && includeValid && Math.random() < 0.95) {
+                continue;
+            }
+            else {
+                return assertFromInfix(ex);
+            }
+        }
     }).join('\n');
     $("copyOutputButton").hidden = false;
     $("output").hidden = false;
@@ -75,6 +119,13 @@ function assertFromInfix(infix) {
 }
 
 function randomInfixExpression() {
-    let choices = ["t|f&t", "t&!f|()", "(f|f&!t)"];
-    return choices[Math.floor(Math.random() * choices.length)];
+    // make spaces less common by doubling everything else
+    const choices = "tf!&|()" + "tf!&|()" + " ";
+    let x = Math.random();
+    let length = Math.floor(x * 6 + 3);
+    let expr = "";
+    for (let i = 0; i < length; i++) {
+        expr += choices[Math.floor(Math.random() * choices.length)];
+    }
+    return expr;
 }
