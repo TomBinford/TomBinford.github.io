@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Text Renderer Testing</title>
+    <link rel="stylesheet" type="text/css" href="text-renderer.css">
+</head>
+
+<body style="padding: 5%;">
+    <div class="input-container" style="width: fit-content">
+        <div>This is a testing program for CS 31 project 5.</div>
+        <div>It generates many sample inputs and checks that your program's output matches
+            <a target="_blank" href="http://web.cs.ucla.edu/classes/fall23/cs31/Projects/5/tester.html">the official
+                tester</a>.
+        </div>
+        <h3 style="line-height: 0;">Usage</h3>
+        <ol>
+            <li>SSH into SEASnet. This code has been confirmed to work on <code>lnxsrv11.seas.ucla.edu</code>.</li>
+            <li><code>cd</code> into the directory where your <code>render.cpp</code> is. Test that you can build and
+                run <code>render.cpp</code> under <code>g31</code>.</li>
+            <li>Edit your <code>render.cpp</code> file. Comment out your <code>main</code> function and write the
+                following at the bottom:</li>
+            <pre>#include &lt;iostream&gt;
+int main() {
+    int lineLength;
+    std::cin &gt;&gt; lineLength;
+    int returned = render(lineLength, std::cin, std::cout);
+    std::cout &lt;&lt; '\n' &lt;&lt; returned;
+}</pre>
+            <li>Run the following shell commands in the directory containing <code>render.cpp</code>:
+                <pre>$ wget https://tombinford.github.io/text-renderer/testing-script.py
+$ chmod +x testing-script.py
+$ g31 -o render-tweaked render.cpp && ./testing-script.py ./render-tweaked</pre>
+            </li>
+            <li>Debug any failing inputs reported by the script. Good luck!</li>
+        </ol>
+    </div>
+</body>
+
+</html>
