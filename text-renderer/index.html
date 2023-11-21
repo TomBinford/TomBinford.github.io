@@ -28,9 +28,18 @@ int main() {
     std::cout &lt;&lt; '\n' &lt;&lt; returned;
 }</pre>
             <li>Run the following shell commands in the directory containing <code>render.cpp</code>:
-                <pre>$ wget https://tombinford.github.io/text-renderer/testing-script.py
-$ chmod +x testing-script.py
-$ g31 -o render-tweaked render.cpp && ./testing-script.py ./render-tweaked</pre>
+                <div style="display: flex;">
+                    <pre style="margin-bottom: 0" class="unselectable">$ </pre>
+                    <pre style="margin-bottom: 0">wget https://tombinford.github.io/text-renderer/testing-script.py</pre>
+                </div>
+                <div style="display: flex;">
+                    <pre style="margin: 0" class="unselectable">$ </pre>
+                    <pre style="margin: 0">chmod +x testing-script.py</pre>
+                </div>
+                <div style="display: flex;">
+                    <pre style="margin-top: 0" class="unselectable">$ </pre>
+                    <pre style="margin-top: 0">g31 -o render-tweaked render.cpp && ./testing-script.py ./render-tweaked</pre>
+                </div>
             </li>
             <li>Debug any failing inputs reported by the script. Good luck!</li>
         </ol>
