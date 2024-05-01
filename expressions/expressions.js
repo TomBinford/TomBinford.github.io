@@ -82,6 +82,8 @@ function generateValidAssert() {
     let infix = ast.toInfix();
     let postfix = ast.toPostfix();
     let evaluatesTrue = ast.evaluate();
+    infix = infix.replace(/f/g, 'F').replace(/t/g, 'T');
+    postfix = postfix.replace(/f/g, 'F').replace(/t/g, 'T');
     return `assert(evaluate("${infix}", tset, fset, pf, answer) == 0 && pf == "${postfix}" && ${evaluatesTrue ? '' : '!'}answer);`;
 }
 
@@ -90,6 +92,7 @@ function generateInvalidAssert() {
     do {
         e = randomInfixExpression();
     } while (isValidInfix(e));
+    e = e.replace(/f/g, 'F').replace(/t/g, 'T');
     return `assert(evaluate("${e}", tset, fset, pf, answer) == 1);`;
 }
 
